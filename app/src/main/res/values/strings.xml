@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">GlobalWeather</string>
+    <string name="api_key">a2fee940083599f87097da17f66178b5</string>
+    <string name="loading">Loading...</string>
+    <string name="min_temp">Min Temp</string>
+    <string name="current_temp">Current Temp</string>
+    <string name="max_temp">Max Temp</string>
+    <string name="icons_base_url">http://openweathermap.org/img/wn/</string>
+</resources>
