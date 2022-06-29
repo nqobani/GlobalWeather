@@ -16,15 +16,10 @@
         <action
             android:id="@+id/action_homeFragment_to_mapsFragment"
             app:destination="@id/mapsFragment" />
-        <argument
-            android:name="lat"
-            app:argType="float" />
-        <argument android:name="lon"
-            app:argType="float" />
     </fragment>
     <fragment
         android:id="@+id/mapsFragment"
-        android:name="com.example.globalweather.MapsFragment"
+        android:name="com.example.globalweather.view.Maps.MapsFragment"
         android:label="fragment_maps"
         tools:layout="@layout/fragment_maps" >
         <action

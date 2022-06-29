@@ -1,10 +1,19 @@
 package com.example.globalweather.view.Home
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationManager
 import android.os.Bundle
+import android.os.Looper
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.app.ActivityCompat
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.globalweather.ViewModels.WeatherViewModel
@@ -13,43 +22,46 @@ import com.example.globalweather.databinding.FragmentHomeBinding
 import com.example.globalweather.models.list
 import com.example.globalweather.utils.DateTimeUtils
 import com.example.globalweather.utils.DisplayImageHelper
+import com.google.android.gms.location.*
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 
-
-private const val LON = "lon"
-private const val LAT = "lat"
 
 @AndroidEntryPoint
 class HomeFragment : Fragment(), HomeView<HomeViewState> {
-    private var lon: Float = 30.9758303f
-    private var lat: Float = -29.8917232f
-
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
     private val weatherViewModel by viewModels<WeatherViewModel>()
     lateinit var binding: FragmentHomeBinding
 
+    private lateinit var locationRequest: LocationRequest
+    private lateinit var locationCallback: LocationCallback
+
+    private val requestMultiplePermissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+        if (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true && permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true) {
+            activity?.let { activity ->
+                getLocation(activity)
+            }
+        } else {
+            //TODO: Handle Permission denied.
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-//        arguments?.let {
-//            lat = it.getFloat(LAT)
-//            lon = it.getFloat(LON)
-//        }
 
         weatherViewModel.state.observe(this) { viewState ->
             render(viewState)
         }
 
-        CoroutineScope(Dispatchers.IO).launch {
-            weatherViewModel.intent.send(HomeIntents.GetCurrentWeather(lat.toDouble(), lon.toDouble()))
+        activity?.let { activity ->
+            getLocation(activity)
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         binding = FragmentHomeBinding.inflate(layoutInflater)
         return binding.root
     }
@@ -58,17 +70,44 @@ class HomeFragment : Fragment(), HomeView<HomeViewState> {
         @JvmStatic
         fun newInstance(lat: String, lon: String) =
             HomeFragment().apply {
-                arguments = Bundle().apply {
-                    putString(LON, lon)
-                    putString(LAT, lat)
-                }
             }
     }
 
+    private fun getLocation(activity: Activity){
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(activity)
+        locationRequest = LocationRequest.create().apply {
+            interval = TimeUnit.SECONDS.toMillis(30)
+            fastestInterval = TimeUnit.SECONDS.toMillis(30)
+            maxWaitTime = TimeUnit.MINUTES.toMillis(2)
+            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        }
+
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult) {
+                super.onLocationResult(locationResult)
+                locationResult.lastLocation.let { location ->
+                    CoroutineScope(Dispatchers.IO).launch {
+                        weatherViewModel.intent.send(HomeIntents.GetCurrentWeather(location.altitude, location.longitude))
+                    }
+                }
+            }
+        }
+
+        if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+            || ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestMultiplePermissions.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
+            return
+        } else {
+            fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
+        }
+    }
+
+    @SuppressLint("SetTextI18n")
     override fun render(state: HomeViewState) {
         CoroutineScope(Dispatchers.Main).launch {
             when(state){
                 is HomeViewState.Loading -> {
+
                 }
                 is HomeViewState.CurrentWeatherData -> {
                     binding.cityNameTextView.text = state.currentWeather.name
@@ -80,17 +119,17 @@ class HomeFragment : Fragment(), HomeView<HomeViewState> {
                     DisplayImageHelper.displayImage(this@HomeFragment.context!!, binding.weatherIconImageView, "https://openweathermap.org/img/wn/${state.currentWeather.weather[0].icon}.png")
 
                     CoroutineScope(Dispatchers.IO).launch {
-                        weatherViewModel.intent.send(HomeIntents.GetWeatherForecast(lat.toDouble(), lon.toDouble()))
+                        weatherViewModel.intent.send(HomeIntents.GetWeatherForecast(state.currentWeather.coord.lat, state.currentWeather.coord.lon))
                     }
                 }
                 is HomeViewState.WeatherForecastData -> {
-                    var iterms : MutableList<list> = mutableListOf()
+                    val items : MutableList<list> = mutableListOf()
                     state.weatherForecast.list.forEach{ iterm ->
                         if(DateTimeUtils.getHour(iterm.dt_txt) == 12){
-                            iterms.add(iterm)
+                            items.add(iterm)
                         }
                     }
-                    var adapter = WeatherForecastRecyclerViewAdapter(this@HomeFragment.context!!, iterms)
+                    val adapter = WeatherForecastRecyclerViewAdapter(this@HomeFragment.context!!, items)
                     binding.weatherForecastRecyclerView.adapter = adapter
                     binding.weatherForecastRecyclerView.layoutManager = LinearLayoutManager(this@HomeFragment.context)
                     binding.weatherForecastRecyclerView.setHasFixedSize(true)
