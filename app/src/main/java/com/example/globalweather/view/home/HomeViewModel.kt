@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.globalweather.interfaces.IModel
 import com.example.globalweather.features.weather.useCases.GetCurrentWeatherUseCase
 import com.example.globalweather.features.weather.useCases.GetWeatherForecastUseCase
+import com.example.globalweather.models.CurrentWeather
+import com.example.globalweather.models.WeatherForecast
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -27,6 +29,9 @@ class HomeViewModel
     override val state: StateFlow<HomeViewState> = _weatherUiState
     override val intent: Channel<HomeIntents> = Channel(Channel.UNLIMITED)
 
+    private var currentWeather: CurrentWeather? = null
+    private var weatherForecast: WeatherForecast? = null
+
     init {
         viewModelScope.launch {
             intent.consumeAsFlow().collect { homeIntent ->
@@ -43,7 +48,8 @@ class HomeViewModel
         viewModelScope.launch(Dispatchers.Main) {
             val currentWeatherResult = getCurrentWeatherUseCase(-29.883333, 31.049999)
             currentWeatherResult.onSuccess { currentWeatherData ->
-                updateViewState(HomeViewState.CurrentWeatherData(currentWeatherData))
+                currentWeather = currentWeatherData
+                updateViewState(HomeViewState.CurrentWeatherData(currentWeatherData, weatherForecast))
             }
             currentWeatherResult.onFailure { exception ->
                 updateViewState(HomeViewState.OnError(exception.message!!))
@@ -56,7 +62,8 @@ class HomeViewModel
         viewModelScope.launch(Dispatchers.Main) {
             val weatherForecastResult = getWeatherForecastUseCase(-29.883333, 31.049999)
             weatherForecastResult.onSuccess { weatherForecastData ->
-                updateViewState(HomeViewState.WeatherForecastData(weatherForecastData))
+                weatherForecast = weatherForecastData
+                updateViewState(HomeViewState.WeatherForecastData(weatherForecastData, currentWeather))
             }
             weatherForecastResult.onFailure { exception ->
                 updateViewState(HomeViewState.OnError(exception.message!!))

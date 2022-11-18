@@ -6,7 +6,16 @@ import com.example.globalweather.models.WeatherForecast
 
 sealed class HomeViewState: IState {
     object Loading: HomeViewState()
-    data class CurrentWeatherData(val currentWeather: CurrentWeather): HomeViewState()
-    data class WeatherForecastData(val weatherForecast: WeatherForecast): HomeViewState()
+
+    data class CurrentWeatherData(
+        val currentWeather: CurrentWeather,
+        val weatherForecast: WeatherForecast?
+    ): HomeViewState()
+
+    data class WeatherForecastData(
+        val weatherForecast: WeatherForecast,
+        val currentWeather: CurrentWeather?
+    ): HomeViewState()
+
     data class OnError(val errorMessage: String): HomeViewState()
 }

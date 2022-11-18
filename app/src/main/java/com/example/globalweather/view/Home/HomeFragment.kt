@@ -11,12 +11,15 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.globalweather.adaptersAndViewHolders.WeatherForecastRecyclerViewAdapter
 import com.example.globalweather.databinding.FragmentHomeBinding
+import com.example.globalweather.models.CurrentWeather
+import com.example.globalweather.models.WeatherForecast
 import com.example.globalweather.models.list
 import com.example.globalweather.utils.DateTimeUtils
 import com.example.globalweather.utils.DisplayImageHelper
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.launch
 
 
@@ -54,33 +57,43 @@ class HomeFragment : Fragment(), HomeView<HomeViewState> {
         CoroutineScope(Dispatchers.Main).launch {
             when(state){
                 is HomeViewState.Loading -> {
-                    //Loading indicator
+                    //TODO: improve Loading indicator
                 }
                 is HomeViewState.CurrentWeatherData -> {
-                    binding.cityNameTextView.text = state.currentWeather.name
-                    binding.currentTempTextView.text = "${state.currentWeather.main.temp}\u00B0"
-                    binding.currentWeatherTempTextView.text = "${state.currentWeather.main.temp}\u00B0"
-                    binding.minTempTextView.text = "${state.currentWeather.main.temp_min}\u00B0"
-                    binding.maxTempTextView.text = "${state.currentWeather.main.temp_max}\u00B0"
-                    binding.currentWeatherDescriptionTextView.text = state.currentWeather.weather[0].description
-                    DisplayImageHelper.displayImage(this@HomeFragment.context!!, binding.weatherIconImageView, "https://openweathermap.org/img/wn/${state.currentWeather.weather[0].icon}.png")
+                    displayCurrentWeather(state.currentWeather)
                 }
                 is HomeViewState.WeatherForecastData -> {
-                    val items : MutableList<list> = mutableListOf()
-                    state.weatherForecast.list.forEach{ iterm ->
-                        if(DateTimeUtils.getHour(iterm.dt_txt) == 12){
-                            items.add(iterm)
-                        }
-                    }
-                    val adapter = WeatherForecastRecyclerViewAdapter(this@HomeFragment.context!!, items)
-                    binding.weatherForecastRecyclerView.adapter = adapter
-                    binding.weatherForecastRecyclerView.layoutManager = LinearLayoutManager(this@HomeFragment.context)
-                    binding.weatherForecastRecyclerView.setHasFixedSize(true)
+                    displayWeatherForecast(state.weatherForecast)
+                    state.currentWeather?.let { displayCurrentWeather(it) }
                 }
                 is HomeViewState.OnError -> {
-                    //TODO:
+                    //TODO: Handle error
                 }
             }
         }
     }
+
+    private fun displayCurrentWeather(currentWeather: CurrentWeather) {
+        binding.cityNameTextView.text = currentWeather.name
+        binding.currentTempTextView.text = "${currentWeather.main.temp}\u00B0"
+        binding.currentWeatherTempTextView.text = "${currentWeather.main.temp}\u00B0"
+        binding.minTempTextView.text = "${currentWeather.main.temp_min}\u00B0"
+        binding.maxTempTextView.text = "${currentWeather.main.temp_max}\u00B0"
+        binding.currentWeatherDescriptionTextView.text = currentWeather.weather[0].description
+        DisplayImageHelper.displayImage(this@HomeFragment.context!!, binding.weatherIconImageView, "https://openweathermap.org/img/wn/${currentWeather.weather[0].icon}.png")
+    }
+
+    private fun displayWeatherForecast(weatherForecast: WeatherForecast) {
+        val items : MutableList<list> = mutableListOf()
+        weatherForecast.list.forEach{ iterm ->
+            if(DateTimeUtils.getHour(iterm.dt_txt) == 12){
+                items.add(iterm)
+            }
+        }
+        val adapter = WeatherForecastRecyclerViewAdapter(this@HomeFragment.context!!, items)
+        binding.weatherForecastRecyclerView.adapter = adapter
+        binding.weatherForecastRecyclerView.layoutManager = LinearLayoutManager(this@HomeFragment.context)
+        binding.weatherForecastRecyclerView.setHasFixedSize(true)
+    }
+
 }
