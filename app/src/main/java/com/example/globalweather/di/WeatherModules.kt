@@ -1,14 +1,13 @@
 package com.example.globalweather.di
 
 import android.content.Context
-import com.example.globalweather.Repositories.WeatherAPIRepositoryImpl
-import com.example.globalweather.Repositories.interfaces.WeatherAPIRepository
-import com.example.globalweather.useCases.GetCurrentWeatherUseCase
-import com.example.globalweather.useCases.GetWeatherForecastUseCase
+import com.example.globalweather.features.weather.repository.WeatherRepositoryImpl
+import com.example.globalweather.features.weather.repository.WeatherRepository
+import com.example.globalweather.features.weather.useCases.GetCurrentWeatherUseCase
+import com.example.globalweather.features.weather.useCases.GetWeatherForecastUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.components.ActivityComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 
@@ -16,11 +15,11 @@ import dagger.hilt.components.SingletonComponent
 @InstallIn(SingletonComponent::class)
 class WeatherModules {
     @Provides
-    fun provideWeatherRepository(@ApplicationContext context: Context): WeatherAPIRepository = WeatherAPIRepositoryImpl(context)
+    fun provideWeatherRepository(@ApplicationContext context: Context): WeatherRepository = WeatherRepositoryImpl(context)
 
     @Provides
-    fun provideGetCurrentWeatherUseCase(weatherAPIRepository: WeatherAPIRepository): GetCurrentWeatherUseCase = GetCurrentWeatherUseCase(weatherAPIRepository)
+    fun provideGetCurrentWeatherUseCase(weatherRepository: WeatherRepository): GetCurrentWeatherUseCase = GetCurrentWeatherUseCase(weatherRepository)
 
     @Provides
-    fun provideGetWeatherForecastUseCase(weatherAPIRepository: WeatherAPIRepository): GetWeatherForecastUseCase = GetWeatherForecastUseCase(weatherAPIRepository)
+    fun provideGetWeatherForecastUseCase(weatherRepository: WeatherRepository): GetWeatherForecastUseCase = GetWeatherForecastUseCase(weatherRepository)
 }

@@ -1,8 +1,9 @@
-package com.example.globalweather.view.Home
+package com.example.globalweather.view.home
 
 import com.example.globalweather.interfaces.IIntent
 
 sealed class HomeIntents: IIntent {
-    data class GetCurrentWeather(val lat: Double, val lon: Double): HomeIntents()
-    data class GetWeatherForecast(val lat: Double, val lon: Double): HomeIntents()
+    object GetCurrentWeather: HomeIntents()
+    object GetWeatherForecast: HomeIntents()
+    data class Login(val userName: String): HomeIntents()
 }

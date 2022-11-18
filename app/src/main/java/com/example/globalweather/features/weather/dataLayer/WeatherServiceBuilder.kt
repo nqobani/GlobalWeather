@@ -1,4 +1,4 @@
-package com.example.globalweather.dataLayer
+package com.example.globalweather.features.weather.dataLayer
 
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -6,11 +6,11 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class WeatherServiceBuilder {
     companion object{
-        var retrofit = Retrofit.Builder()
+        private var retrofit = Retrofit.Builder()
             .baseUrl("https://api.openweathermap.org/data/2.5/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
-        var weatherAPIService: WeatherAPI = retrofit.create(WeatherAPI::class.java)
+        var weatherAPIService: WeatherAPIService = retrofit.create(WeatherAPIService::class.java)
     }
 }

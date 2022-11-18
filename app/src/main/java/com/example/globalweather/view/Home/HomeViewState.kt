@@ -1,4 +1,4 @@
-package com.example.globalweather.view.Home
+package com.example.globalweather.view.home
 
 import com.example.globalweather.interfaces.IState
 import com.example.globalweather.models.CurrentWeather
