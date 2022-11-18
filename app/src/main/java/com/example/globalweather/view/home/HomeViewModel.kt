@@ -45,7 +45,7 @@ class HomeViewModel
 
     private fun getCurrentWeather() {
         updateViewState(HomeViewState.Loading)
-        viewModelScope.launch(Dispatchers.Main) {
+        viewModelScope.launch(Dispatchers.IO) {
             val currentWeatherResult = getCurrentWeatherUseCase(-29.883333, 31.049999)
             currentWeatherResult.onSuccess { currentWeatherData ->
                 currentWeather = currentWeatherData
@@ -59,7 +59,7 @@ class HomeViewModel
 
     private fun getWeatherForecast() {
         updateViewState(HomeViewState.Loading)
-        viewModelScope.launch(Dispatchers.Main) {
+        viewModelScope.launch(Dispatchers.IO) {
             val weatherForecastResult = getWeatherForecastUseCase(-29.883333, 31.049999)
             weatherForecastResult.onSuccess { weatherForecastData ->
                 weatherForecast = weatherForecastData
