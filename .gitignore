@@ -26,3 +26,8 @@
 .idea/gradle.xml
 .idea/misc.xml
 .idea/vcs.xml
+*.bin
+*.lock
+.gradle/file-system.probe
+.gradle/7.4/gc.properties
+.gradle/7.4/dependencies-accessors/gc.properties
