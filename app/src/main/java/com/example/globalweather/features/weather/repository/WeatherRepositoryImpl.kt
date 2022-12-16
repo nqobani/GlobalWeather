@@ -11,7 +11,16 @@ import kotlinx.coroutines.withContext
 class WeatherRepositoryImpl(val context: Context) : WeatherRepository {
     override suspend fun getCurrentWeather(lat: Double, lon: Double): Result<CurrentWeather> {
         return withContext(Dispatchers.IO) {
-            val currentWeatherResponse = WeatherServiceBuilder.weatherAPIService.getRemoteCurrentWeather(lat, lon, context.getString(R.string.api_key), "metric")
+            val currentWeatherResponse = WeatherServiceBuilder
+                .weatherAPIService
+                .getRemoteCurrentWeather(
+                    lat,
+                    lon,
+                    context.getString(
+                        R.string.api_key
+                    ),
+                    "metric"
+                )
             if (currentWeatherResponse.isSuccessful) {
                 return@withContext Result.success(currentWeatherResponse.body()!!)
             } else {
@@ -21,8 +30,14 @@ class WeatherRepositoryImpl(val context: Context) : WeatherRepository {
     }
 
     override suspend fun getWeatherForecast(lat: Double, lon: Double): Result<WeatherForecast> {
-        return  withContext(Dispatchers.IO){
-            val weatherForecastResponse = WeatherServiceBuilder.weatherAPIService.getRemoteWeatherForecast(lat, lon, context.getString(R.string.api_key), "metric")
+        return withContext(Dispatchers.IO) {
+            val weatherForecastResponse = WeatherServiceBuilder
+                .weatherAPIService
+                .getRemoteWeatherForecast(
+                    lat,
+                    lon,
+                    context.getString(R.string.api_key), "metric"
+                )
             if (weatherForecastResponse.isSuccessful) {
                 return@withContext Result.success(weatherForecastResponse.body()!!)
             } else {

@@ -2,10 +2,10 @@ package com.example.globalweather.view.home
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -19,9 +19,7 @@ import com.example.globalweather.utils.DisplayImageHelper
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.launch
-
 
 @AndroidEntryPoint
 class HomeFragment : Fragment(), HomeView<HomeViewState> {
@@ -31,13 +29,17 @@ class HomeFragment : Fragment(), HomeView<HomeViewState> {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        CoroutineScope(Dispatchers.Main).launch{
+        CoroutineScope(Dispatchers.Main).launch {
             homeViewModel.intent.send(HomeIntents.GetCurrentWeather)
             homeViewModel.intent.send(HomeIntents.GetWeatherForecast)
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         binding = FragmentHomeBinding.inflate(layoutInflater)
         return binding.root
     }
@@ -45,8 +47,8 @@ class HomeFragment : Fragment(), HomeView<HomeViewState> {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewLifecycleOwner.lifecycleScope.launch{
-            homeViewModel.state.collect{
+        viewLifecycleOwner.lifecycleScope.launch {
+            homeViewModel.state.collect {
                 render(it)
             }
         }
@@ -55,9 +57,9 @@ class HomeFragment : Fragment(), HomeView<HomeViewState> {
     @SuppressLint("SetTextI18n")
     override fun render(state: HomeViewState) {
         CoroutineScope(Dispatchers.Main).launch {
-            when(state){
+            when (state) {
                 is HomeViewState.Loading -> {
-                    //TODO: improve Loading indicator
+                    // TODO: improve Loading indicator
                 }
                 is HomeViewState.CurrentWeatherData -> {
                     displayCurrentWeather(state.currentWeather)
@@ -67,7 +69,7 @@ class HomeFragment : Fragment(), HomeView<HomeViewState> {
                     state.currentWeather?.let { displayCurrentWeather(it) }
                 }
                 is HomeViewState.OnError -> {
-                    //TODO: Handle error
+                    // TODO: Handle error
                 }
             }
         }
@@ -80,20 +82,25 @@ class HomeFragment : Fragment(), HomeView<HomeViewState> {
         binding.minTempTextView.text = "${currentWeather.main.temp_min}\u00B0"
         binding.maxTempTextView.text = "${currentWeather.main.temp_max}\u00B0"
         binding.currentWeatherDescriptionTextView.text = currentWeather.weather[0].description
-        DisplayImageHelper.displayImage(this@HomeFragment.context!!, binding.weatherIconImageView, "https://openweathermap.org/img/wn/${currentWeather.weather[0].icon}.png")
+        DisplayImageHelper.displayImage(
+            requireContext(),
+            binding.weatherIconImageView,
+            "https://openweathermap.org/img/wn/${currentWeather.weather[0].icon}.png"
+        )
     }
 
     private fun displayWeatherForecast(weatherForecast: WeatherForecast) {
-        val items : MutableList<list> = mutableListOf()
-        weatherForecast.list.forEach{ iterm ->
-            if(DateTimeUtils.getHour(iterm.dt_txt) == 12){
+        val items: MutableList<list> = mutableListOf()
+        weatherForecast.list.forEach { iterm ->
+            if (DateTimeUtils.getHour(iterm.dt_txt) == 12) {
                 items.add(iterm)
             }
         }
-        val adapter = WeatherForecastRecyclerViewAdapter(this@HomeFragment.context!!, items)
+        val adapter = WeatherForecastRecyclerViewAdapter(requireContext(), items)
         binding.weatherForecastRecyclerView.adapter = adapter
-        binding.weatherForecastRecyclerView.layoutManager = LinearLayoutManager(this@HomeFragment.context)
+        binding.weatherForecastRecyclerView.layoutManager = LinearLayoutManager(
+            this@HomeFragment.context
+        )
         binding.weatherForecastRecyclerView.setHasFixedSize(true)
     }
-
 }

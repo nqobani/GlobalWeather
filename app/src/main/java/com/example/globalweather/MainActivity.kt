@@ -1,7 +1,7 @@
 package com.example.globalweather
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.example.globalweather.databinding.ActivityMainBinding
