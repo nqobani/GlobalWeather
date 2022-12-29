@@ -29,7 +29,7 @@ class HomeFragment : Fragment(), HomeView<HomeViewState> {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        CoroutineScope(Dispatchers.Main).launch {
+        CoroutineScope(Dispatchers.IO).launch {
             homeViewModel.intent.send(HomeIntents.GetCurrentWeather)
             homeViewModel.intent.send(HomeIntents.GetWeatherForecast)
         }
@@ -75,6 +75,7 @@ class HomeFragment : Fragment(), HomeView<HomeViewState> {
         }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun displayCurrentWeather(currentWeather: CurrentWeather) {
         binding.cityNameTextView.text = currentWeather.name
         binding.currentTempTextView.text = "${currentWeather.main.temp}\u00B0"
