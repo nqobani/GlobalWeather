@@ -6,4 +6,7 @@
     <string name="current_temp">Current Temp</string>
     <string name="max_temp">Max Temp</string>
     <string name="icons_base_url">http://openweathermap.org/img/wn/</string>
+    <string name="home">Home</string>
+    <string name="search">Search</string>
+    <string name="map">Map</string>
 </resources>

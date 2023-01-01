@@ -2,16 +2,16 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@id/HomeFragment"
-        android:icon="@drawable/ic_launcher_background"
-        android:title="Home" />
+        android:icon="@drawable/ic_home"
+        android:title="@string/home" />
 
     <item
         android:id="@id/searchPlacesFragment"
-        android:icon="@drawable/ic_launcher_background"
-        android:title="Search" />
+        android:icon="@drawable/ic_search"
+        android:title="@string/search" />
 
     <item
         android:id="@id/mapsFragment"
-        android:icon="@drawable/ic_launcher_background"
-        android:title="Map" />
+        android:icon="@drawable/ic_map"
+        android:title="@string/map" />
 </menu>
