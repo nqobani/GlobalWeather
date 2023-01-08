@@ -5,11 +5,23 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.Card
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.CenterHorizontally
+import androidx.compose.ui.Alignment.Companion.CenterVertically
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.globalweather.adaptersAndViewHolders.WeatherForecastRecyclerViewAdapter
+import coil.compose.AsyncImage
 import com.example.globalweather.databinding.FragmentHomeBinding
 import com.example.globalweather.models.CurrentWeather
 import com.example.globalweather.models.WeatherForecast
@@ -41,6 +53,9 @@ class HomeFragment : Fragment(), HomeView<HomeViewState> {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentHomeBinding.inflate(layoutInflater)
+        binding.composeView.setViewCompositionStrategy(
+            ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
+        )
         return binding.root
     }
 
@@ -97,11 +112,61 @@ class HomeFragment : Fragment(), HomeView<HomeViewState> {
                 items.add(iterm)
             }
         }
-        val adapter = WeatherForecastRecyclerViewAdapter(requireContext(), items)
-        binding.weatherForecastRecyclerView.adapter = adapter
-        binding.weatherForecastRecyclerView.layoutManager = LinearLayoutManager(
-            this@HomeFragment.context
-        )
-        binding.weatherForecastRecyclerView.setHasFixedSize(true)
+
+        binding.composeView.setContent {
+            MaterialTheme() {
+                WeatherForecast(items = items)
+            }
+        }
+    }
+}
+
+@Composable
+fun WeatherForecast(items: MutableList<list>) {
+    LazyColumn(content = {
+        items(items) {
+            WeatherItem(item = it)
+        }
+    })
+}
+
+@Composable
+fun WeatherItem(item: list) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = 4.dp
+    ) {
+        Row() {
+            Text(
+                text = DateTimeUtils.getWeekDay(item.dt_txt),
+                modifier = Modifier.height(50.dp).wrapContentHeight(CenterVertically),
+                style = MaterialTheme.typography.body1
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AsyncImage(
+                    model = "https://openweathermap.org/img/wn/${item.weather[0].icon}.png",
+                    contentDescription = "Weather Icon",
+                    modifier = Modifier.size(50.dp)
+                )
+
+                Text(
+                    text = "${item.main.temp_min}\u00B0",
+                    modifier = Modifier.width(90.dp)
+                        .wrapContentWidth(CenterHorizontally),
+                    style = MaterialTheme.typography.body1
+                )
+                Text(
+                    text = "${item.main.temp_max}\u00B0",
+                    modifier = Modifier.width(90.dp)
+                        .wrapContentWidth(CenterHorizontally),
+                    style = MaterialTheme.typography.body1
+                )
+            }
+        }
     }
 }
