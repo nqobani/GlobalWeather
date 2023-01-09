@@ -8,13 +8,10 @@ import android.view.ViewGroup
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Alignment.Companion.CenterHorizontally
-import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.unit.dp
@@ -22,12 +19,14 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import coil.compose.AsyncImage
+import com.example.globalweather.composeComponents.CurrentWeatherTempLevels
+import com.example.globalweather.composeComponents.DailyWeatherItemCard
 import com.example.globalweather.databinding.FragmentHomeBinding
 import com.example.globalweather.models.CurrentWeather
 import com.example.globalweather.models.WeatherForecast
 import com.example.globalweather.models.list
 import com.example.globalweather.utils.DateTimeUtils
-import com.example.globalweather.utils.DisplayImageHelper
+import com.google.accompanist.themeadapter.material.MdcTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -36,6 +35,9 @@ import kotlinx.coroutines.launch
 @AndroidEntryPoint
 class HomeFragment : Fragment(), HomeView<HomeViewState> {
     private val homeViewModel by viewModels<HomeViewModel>()
+
+    // TODO: Fully migrate to compose and delete the XML.
+    //TODO: Use resources and remove hardcoded data
     private lateinit var binding: FragmentHomeBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -92,17 +94,18 @@ class HomeFragment : Fragment(), HomeView<HomeViewState> {
 
     @SuppressLint("SetTextI18n")
     private fun displayCurrentWeather(currentWeather: CurrentWeather) {
-        binding.cityNameTextView.text = currentWeather.name
-        binding.currentTempTextView.text = "${currentWeather.main.temp}\u00B0"
-        binding.currentWeatherTempTextView.text = "${currentWeather.main.temp}\u00B0"
-        binding.minTempTextView.text = "${currentWeather.main.temp_min}\u00B0"
-        binding.maxTempTextView.text = "${currentWeather.main.temp_max}\u00B0"
-        binding.currentWeatherDescriptionTextView.text = currentWeather.weather[0].description
-        DisplayImageHelper.displayImage(
-            requireContext(),
-            binding.weatherIconImageView,
-            "https://openweathermap.org/img/wn/${currentWeather.weather[0].icon}.png"
-        )
+        binding.composeViewTop.setContent {
+            MdcTheme {
+                TopContentView(
+                    currentWeather.name,
+                    currentWeather.main.temp,
+                    currentWeather.weather[0].icon,
+                    currentWeather.weather[0].description,
+                    currentWeather.main.temp_min,
+                    currentWeather.main.temp_max
+                )
+            }
+        }
     }
 
     private fun displayWeatherForecast(weatherForecast: WeatherForecast) {
@@ -114,7 +117,7 @@ class HomeFragment : Fragment(), HomeView<HomeViewState> {
         }
 
         binding.composeView.setContent {
-            MaterialTheme() {
+            MdcTheme() {
                 WeatherForecast(items = items)
             }
         }
@@ -125,48 +128,59 @@ class HomeFragment : Fragment(), HomeView<HomeViewState> {
 fun WeatherForecast(items: MutableList<list>) {
     LazyColumn(content = {
         items(items) {
-            WeatherItem(item = it)
+            DailyWeatherItemCard(item = it)
         }
     })
 }
 
 @Composable
-fun WeatherItem(item: list) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = 4.dp
+fun TopContentView(
+    placeName: String,
+    temperature: Double,
+    icon: String,
+    description: String,
+    minTemp: Double,
+    maxTemp: Double
+) {
+
+    Column(
+        modifier = Modifier.padding(bottom = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceEvenly
     ) {
-        Row() {
-            Text(
-                text = DateTimeUtils.getWeekDay(item.dt_txt),
-                modifier = Modifier.height(50.dp).wrapContentHeight(CenterVertically),
-                style = MaterialTheme.typography.body1
-            )
+        Text(
+            text = placeName,
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentWidth(),
+            style = MaterialTheme.typography.h5
+        )
+        Text(
+            text = "$temperature°",
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentWidth(),
+            style = MaterialTheme.typography.h3
+        )
+        AsyncImage(
+            model = "https://openweathermap.org/img/wn/$icon.png",
+            contentDescription = "Weather Icon",
+            modifier = Modifier.size(130.dp)
+        )
+        Text(
+            text = description,
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentWidth(),
+            style = MaterialTheme.typography.h6
+        )
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                AsyncImage(
-                    model = "https://openweathermap.org/img/wn/${item.weather[0].icon}.png",
-                    contentDescription = "Weather Icon",
-                    modifier = Modifier.size(50.dp)
-                )
+        Spacer(modifier = Modifier.height(8.dp))
 
-                Text(
-                    text = "${item.main.temp_min}\u00B0",
-                    modifier = Modifier.width(90.dp)
-                        .wrapContentWidth(CenterHorizontally),
-                    style = MaterialTheme.typography.body1
-                )
-                Text(
-                    text = "${item.main.temp_max}\u00B0",
-                    modifier = Modifier.width(90.dp)
-                        .wrapContentWidth(CenterHorizontally),
-                    style = MaterialTheme.typography.body1
-                )
-            }
-        }
+        CurrentWeatherTempLevels(
+            minTemp = minTemp,
+            currentTemp = temperature,
+            maxTemp = maxTemp
+        )
     }
 }
